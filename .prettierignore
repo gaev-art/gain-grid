@@ -1,0 +1,33 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+build
+dist
+.next
+out
+web-build
+coverage
+
+# Cache and local files
+.turbo
+.DS_Store
+*.log
+
+# Package files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Mobile specific
+.expo/
+
+# Generated files
+*.min.js
+*.min.css
+
+# Misc
+.env*
+!.env.example

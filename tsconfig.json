@@ -1,11 +1,11 @@
 {
-    "extends": "./web/tsconfig.json",
-    "compilerOptions": {
-      "baseUrl": ".",
-      "paths": {
-        "@shared/*": ["packages/shared/src/*"],
-        "@web/*": ["web/src/*"],
-        "@mobile/*": ["mobile/src/*"]
-      }
+  "extends": "./web/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["packages/shared/src/*"],
+      "@web/*": ["web/src/*"],
+      "@mobile/*": ["mobile/src/*"]
     }
   }
+}
