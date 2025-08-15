@@ -1,5 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 
@@ -26,6 +27,11 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // Check if user has a password (OAuth users won't have one)
+        if (!user.password) {
+          return null;
+        }
+
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isPasswordValid) {
@@ -35,8 +41,18 @@ export const authOptions: NextAuthOptions = {
         return {
           id: user.id,
           email: user.email,
-          name: user.name || user.email, // Use email as fallback if name is null
+          name: user.name || user.email,
         };
+      },
+    }),
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID!,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+        },
       },
     }),
   ],
@@ -47,7 +63,7 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/login',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
@@ -62,6 +78,38 @@ export const authOptions: NextAuthOptions = {
         session.user.name = token.name as string;
       }
       return session;
+    },
+    async signIn({ user, account, profile }) {
+      // Handle Google OAuth sign in
+      if (account?.provider === 'google') {
+        try {
+          // Check if user already exists
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! },
+          });
+
+          if (!existingUser) {
+            // Create new user from Google profile
+            await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name || user.email!,
+                // OAuth users don't have a password
+              },
+            });
+          }
+        } catch (error) {
+          console.error('Error creating Google OAuth user:', error);
+          return false;
+        }
+      }
+      return true;
+    },
+    async redirect({ url, baseUrl }) {
+      // Handle redirects after authentication
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl + '/dashboard';
     },
   },
 };
