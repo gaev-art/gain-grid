@@ -1,4 +1,4 @@
-import { withAuth } from "next-auth/middleware"
+import { withAuth } from 'next-auth/middleware';
 
 export default withAuth(
   function middleware() {
@@ -6,16 +6,16 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token
+      authorized: ({ token }) => !!token,
     },
   }
-)
+);
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/profile/:path*",
-    "/workouts/:path*",
+    '/dashboard/:path*',
+    '/profile/:path*',
+    '/workouts/:path*',
     // Add other protected routes here
-  ]
-}
+  ],
+};

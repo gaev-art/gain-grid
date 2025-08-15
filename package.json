@@ -20,7 +20,9 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "type-check": "turbo run type-check",
-    "prepare": "husky"
+    "prepare": "husky",
+    "start:web": "cd web && docker-compose down && docker-compose up -d && npx prisma migrate deploy && npm run dev",
+    "stop:web": "cd web && docker-compose down"
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": [

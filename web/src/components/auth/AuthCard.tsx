@@ -1,4 +1,6 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AnimatedCard } from '@/components/ui/animated-card';
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { FadeIn } from '@/components/ui/fade-in';
 
 interface AuthCardProps {
   title: string;
@@ -8,12 +10,18 @@ interface AuthCardProps {
 
 export function AuthCard({ title, description, children }: AuthCardProps) {
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">{title}</CardTitle>
-        <CardDescription className="text-center">{description}</CardDescription>
+    <AnimatedCard className="w-full max-w-md">
+      <CardHeader>
+        <FadeIn>
+          <CardTitle className="text-2xl text-center">{title}</CardTitle>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <CardDescription className="text-center">{description}</CardDescription>
+        </FadeIn>
       </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
+      <CardContent>
+        <FadeIn delay={0.2}>{children}</FadeIn>
+      </CardContent>
+    </AnimatedCard>
   );
 }

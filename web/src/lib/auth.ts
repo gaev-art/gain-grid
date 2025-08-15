@@ -1,8 +1,8 @@
+import bcrypt from 'bcryptjs';
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import { prisma } from './prisma';
-import bcrypt from 'bcryptjs';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -13,36 +13,41 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error('Email and password are required');
+          }
+
+          const user = await prisma.user.findUnique({
+            where: {
+              email: credentials.email,
+            },
+          });
+
+          if (!user) {
+            throw new Error('No user found with this email');
+          }
+
+          // Check if user has a password (OAuth users won't have one)
+          if (!user.password) {
+            throw new Error('Please use Google sign in for this account');
+          }
+
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+
+          if (!isPasswordValid) {
+            throw new Error('Invalid password');
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name || user.email,
+          };
+        } catch (error) {
+          console.error('Auth error:', error);
+          throw error;
         }
-
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        });
-
-        if (!user) {
-          return null;
-        }
-
-        // Check if user has a password (OAuth users won't have one)
-        if (!user.password) {
-          return null;
-        }
-
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name || user.email,
-        };
       },
     }),
     Google({
@@ -58,10 +63,13 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
     signIn: '/auth/login',
+    error: '/auth/error',
   },
+  debug: process.env.NODE_ENV === 'development',
   callbacks: {
     async jwt({ token, user, account }) {
       if (user) {
@@ -80,9 +88,9 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async signIn({ user, account, profile }) {
-      // Handle Google OAuth sign in
-      if (account?.provider === 'google') {
-        try {
+      try {
+        // Handle Google OAuth sign in
+        if (account?.provider === 'google') {
           // Check if user already exists
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email! },
@@ -98,12 +106,12 @@ export const authOptions: NextAuthOptions = {
               },
             });
           }
-        } catch (error) {
-          console.error('Error creating Google OAuth user:', error);
-          return false;
         }
+        return true;
+      } catch (error) {
+        console.error('Error in signIn callback:', error);
+        return false;
       }
-      return true;
     },
     async redirect({ url, baseUrl }) {
       // Handle redirects after authentication
