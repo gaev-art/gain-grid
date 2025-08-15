@@ -17,9 +17,9 @@
 .cursor
 .DS_Store
 *.log
+!.env.example
 .env
 .env.*
-!.env.example
 
 # IDE and editor files
 .idea
