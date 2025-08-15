@@ -1,0 +1,28 @@
+{
+  "name": "gain-grid",
+  "private": true,
+  "workspaces": [
+    "web",
+    "mobile",
+    "packages/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "dev:web": "cd web && npm run dev",
+    "dev:mobile": "cd mobile && npx expo start",
+    "dev:bot": "cd web && npm run dev:bot",
+    "build:web": "cd web && npm run build",
+    "build:mobile": "cd mobile && npx eas build",
+    "db:push": "cd web && npx prisma db push",
+    "db:seed": "cd web && npm run db:seed",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check"
+  },
+  "devDependencies": {
+    "turbo": "^1.10.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

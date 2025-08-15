@@ -1,0 +1,7 @@
+/node_modules
+/web/node_modules
+/mobile/node_modules
+/packages/shared/node_modules
+/packages/shared/dist
+/packages/shared/build
+/packages/shared/dist
