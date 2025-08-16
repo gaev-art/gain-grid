@@ -14,7 +14,58 @@ model User {
   password  String?  // Made optional for OAuth users
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  workouts  Workout[]
+
+  // New fitness profile fields
+  timezone      String?
+  lastLogin     DateTime?
+  isActive      Boolean   @default(true)
+  weight        Float?
+  height        Int?
+  fitnessLevel  FitnessLevel?
+  goals         String?
+
+  // Relationships
+  workouts      Workout[]
+  trainingPlans TrainingPlan[]
+  reminders     Reminder[]
+  workoutLogs   WorkoutLog[]
+}
+
+model TrainingPlan {
+  id                 String     @id @default(cuid())
+  userId             String
+  name               String
+  description        String?
+  status             PlanStatus @default(ACTIVE)
+  targetDurationWeeks Int?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  // Relationships
+  user               User       @relation(fields: [userId], references: [id])
+  exercises          Exercise[]
+  reminders          Reminder[]
+
+  @@index([userId, status])
+}
+
+model Reminder {
+  id              String       @id @default(cuid())
+  userId          String
+  trainingPlanId  String?
+  time            DateTime
+  frequency       Frequency    // DAILY, WEEKLY
+  message         String?
+  lastSent        DateTime?
+  active          Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relationships
+  user            User         @relation(fields: [userId], references: [id])
+  trainingPlan    TrainingPlan? @relation(fields: [trainingPlanId], references: [id])
+
+  @@index([userId, active])
 }
 
 model Workout {
@@ -30,13 +81,29 @@ model Workout {
 }
 
 model Exercise {
-  id          String            @id @default(cuid())
-  name        String            @unique
-  description String?
-  category    ExerciseCategory
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  workouts    WorkoutExercise[]
+  id                 String            @id @default(cuid())
+  name               String            @unique
+  description        String?
+  trainingPlanId     String?
+  defaultSets        Int?
+  defaultReps        Int?
+  equipment          String?
+  primaryMuscleGroup MuscleGroup?
+  otherMuscles       String?           // Comma-separated list
+  exerciseType       ExerciseType      @default(STRENGTH)
+  durationMinutes    Int?
+  difficulty         Difficulty?
+  instructions       String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  // Relationships
+  workouts           WorkoutExercise[]
+  trainingPlan       TrainingPlan?     @relation(fields: [trainingPlanId], references: [id])
+  workoutLogs        WorkoutLog[]
+
+  @@index([primaryMuscleGroup])
+  @@index([trainingPlanId])
 }
 
 model WorkoutExercise {
@@ -56,9 +123,84 @@ model WorkoutExercise {
   @@unique([workoutId, exerciseId])
 }
 
+model WorkoutLog {
+  id              String    @id @default(cuid())
+  userId          String
+  exerciseId      String
+  date            DateTime
+  sets            Int
+  reps            Int
+  weight          Float?
+  durationMinutes Int?
+  rating          Int?      // 1-5 rating
+  mood            Mood?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relationships
+  user            User      @relation(fields: [userId], references: [id])
+  exercise        Exercise  @relation(fields: [exerciseId], references: [id])
+
+  @@index([userId, date])
+  @@index([exerciseId])
+}
+
 enum ExerciseCategory {
   STRENGTH
   CARDIO
   FLEXIBILITY
   BODYWEIGHT
+}
+
+// Enums for fitness tracking
+enum FitnessLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ATHLETE
+}
+
+enum PlanStatus {
+  ACTIVE
+  ARCHIVED
+  DRAFT
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+}
+
+enum ExerciseType {
+  STRENGTH
+  CARDIO
+  FLEXIBILITY
+  BODYWEIGHT
+}
+
+enum MuscleGroup {
+  CHEST
+  BACK
+  LEGS
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  CORE
+  FULL_BODY
+  CARDIO
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum Mood {
+  EXCELLENT
+  GOOD
+  OKAY
+  TIRED
+  EXHAUSTED
 }

@@ -9,7 +9,11 @@
     "lint": "eslint src/ --ext .ts,.tsx,.js,.jsx",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "type-check": "tsc --noEmit",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "validate:training-models": "tsx scripts/migrations/validate-training-models.ts",
+    "validate:user-extension": "tsx scripts/migrations/validate-user-extension.ts",
+    "validate:workout-models": "tsx scripts/migrations/validate-workout-models.ts",
+    "validate:all": "npm run validate:training-models && npm run validate:user-extension && npm run validate:workout-models"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -51,6 +55,7 @@
     "prisma": "^6.14.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.4",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5"
   },
